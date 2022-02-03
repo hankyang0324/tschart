@@ -20,10 +20,12 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
     @ViewChild('chartContainer') chartContainer: ElementRef;
 	@Input() data: any = [];
 	@Input() title = 'title';
+	@Input() yLabels = ['Rental Price', 'New Cases'];
+	@Input() differential = false;
     chart: any;
     option: any = {
         chart: {
-			height: 600
+			height: 500
 		},
 		title: {
 			text: 'title'
@@ -31,32 +33,53 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
         yAxis: [
             {
                 labels: {
-                    format: '{value} $',
+                    formatter: function() {
+						return this.value + '$/m';
+					},
                     style: {
                         color: Highcharts.getOptions().colors[0],
                     },
                 },
                 title: {
-                    text: 'Price',
+                    text: this.yLabels[0],
                     style: {
                         color: Highcharts.getOptions().colors[0],
                     },
                 },
-				opposite: false
+				opposite: false,
+				plotLines: [
+					{
+						value: 0,
+						width: 2,
+						color: 'silver'
+					}
+				],
+				showLastLabel: true
             },
             {
-                title: {
-                    text: 'New Cases',
+				labels: {
+					formatter: function() {
+						return this.value;
+					},
                     style: {
                         color: Highcharts.getOptions().colors[3],
                     },
                 },
-                labels: {
+                title: {
+                    text: this.yLabels[1],
                     style: {
                         color: Highcharts.getOptions().colors[3],
                     },
                 },
                 opposite: true,
+				plotLines: [
+					{
+						value: 0,
+						width: 2,
+						color: 'silver'
+					}
+				],
+				showLastLabel: true
             },
         ],
 		xAxis: {
@@ -69,7 +92,10 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
 		},
 		plotOptions: {
             series: {
-                showInNavigator: true
+                showInNavigator: true,
+				dataGrouping: {
+					enabled: false
+				}
             }
         },
         tooltip: {
@@ -85,17 +111,18 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
         },
         series: [
 			{
-				name: 'Price',
+				name: this.yLabels[0],
 				yAxis: 0,
 				tooltip: {
-					valueSuffix:' $'
+					valueSuffix:'$/month'
 				},
 				data: []
 			},
 			{
-				name: 'New Cases',
+				name: this.yLabels[1],
 				yAxis: 1,
-				color: Highcharts.getOptions().colors[3],
+				type: 'column',
+				color: '#F7A35C90',
 				data: []
 			}
 		],
@@ -105,8 +132,21 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes.data && this.data && this.data.length) {
+			console.log(this.data);
 			this.data.forEach((datum, idx) => this.option.series[idx].data = datum);
 			this.option.title.text = this.title;
+			if (this.differential) {
+				for (let i = 0; i < 2; i++) {
+					this.option.yAxis[i].title.text = this.yLabels[i] + ' Differential'
+					this.option.series[i].name = this.yLabels[i] + ' Differential';
+				}
+				this.option.yAxis[0].labels.formatter = function() {
+					return (this.value > 0 ? '+' : '') + this.value + '$/month';
+				}
+				this.option.yAxis[1].labels.formatter = function() {
+					return (this.value > 0 ? '+' : '') + this.value;
+				}
+			}
 			this.draw();
 		}
 	}
@@ -118,6 +158,18 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
 		if (this.data && this.data.length) {
 			this.data.forEach((datum, idx) => this.option.series[idx].data = datum);
 			this.option.title.text = this.title;
+			if (this.differential) {
+				for (let i = 0; i < 2; i++) {
+					this.option.yAxis[i].title.text = this.yLabels[i] + ' Differential'
+					this.option.series[i].name = this.yLabels[i] + ' Differential';
+				}
+				this.option.yAxis[0].labels.formatter = function() {
+					return (this.value > 0 ? '+' : '') + this.value + '$/month';
+				}
+				this.option.yAxis[1].labels.formatter = function() {
+					return (this.value > 0 ? '+' : '') + this.value;
+				}
+			}
 			this.draw();
 		}
     }
@@ -127,5 +179,19 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
 			this.chart.destroy();
 		}
 		this.chart = new Highcharts.StockChart(this.option);
+		if (this.differential) {
+			const range0 = this.chart.yAxis[0].getExtremes();
+			const range1 = this.chart.yAxis[1].getExtremes();
+			const max0 = Math.max(Math.abs(range0.min), Math.abs(range0.max));
+			const max1 = Math.max(Math.abs(range1.min), Math.abs(range1.max));
+			this.chart.yAxis[0].update({
+				min: -max0,
+				max: max0
+			});
+			this.chart.yAxis[1].update({
+				min: -max1,
+				max: max1
+			})
+		}
 	}
 }

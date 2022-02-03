@@ -1,2 +1,8 @@
-<app-tschart [data]='data'></app-tschart>
+<select (change)="onChange($event)">
+    <option *ngFor="let i of options">{{i}}</option>
+ </select>
+ <br><br>
+<app-tschart [data]="data[0]" [title]="title"></app-tschart>
+<br><br>
+<app-tschart [data]="data[1]" [title]="title + ' Differential'" differential=true></app-tschart>
 <router-outlet></router-outlet>
