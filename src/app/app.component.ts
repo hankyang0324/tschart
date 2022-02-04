@@ -8,10 +8,10 @@ import { forkJoin } from 'rxjs';
     styleUrls: ['./app.component.less'],
 })
 export class AppComponent implements OnInit {
-	options = ['New York', 'Boston'];
+	options = ['New York'];
 	selected = 'New York';
 	title = 'New York';
-	data: any[] = [];
+	data: any[];
 
     constructor(private http: HttpClient ){}
 
@@ -28,16 +28,21 @@ export class AppComponent implements OnInit {
 	}
 
 	processData(value) {
-		forkJoin(
-			this.http.get('https://cdn.jsdelivr.net/gh/highcharts/highcharts@v7.0.0/samples/data/goog-c.json'),
-			this.http.get('https://cdn.jsdelivr.net/gh/highcharts/highcharts@v7.0.0/samples/data/aapl-c.json')
-		)
-		.subscribe(res => this.data[0] = res);
-		forkJoin(
-			this.http.get('https://cdn.jsdelivr.net/gh/highcharts/highcharts@v7.0.0/samples/data/msft-c.json'),
-			this.http.get('https://cdn.jsdelivr.net/gh/highcharts/highcharts@v7.0.0/samples/data/goog-c.json')
-		)
-		.subscribe(res => this.data[1] = res);
+		const location = value.split(' ').join('');
+		this.data = [[[], []], [[], []]];
+		this.http.get(`assets/${location}.json`).subscribe((res: any[]) => {
+			res.forEach(item => {
+				const dateTime = new Date(item.Date).getTime();
+				const rent = item.Rent;
+				const cases = item.Case;
+				const rentLP = parseFloat((item.RentLP * 100).toFixed(2));
+				const caseLP = parseFloat((item.CaseLP * 100).toFixed(2));
+				this.data[0][0].push([dateTime, rent]);
+				this.data[0][1].push([dateTime, cases]);
+				this.data[1][0].push([dateTime, rentLP]);
+				this.data[1][1].push([dateTime, caseLP]);
+			})
+		});
 	}
 
 }

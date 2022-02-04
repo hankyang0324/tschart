@@ -34,7 +34,7 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
             {
                 labels: {
                     formatter: function() {
-						return this.value + '$/m';
+						return this.value + '$/month';
 					},
                     style: {
                         color: Highcharts.getOptions().colors[0],
@@ -76,7 +76,7 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
 					{
 						value: 0,
 						width: 2,
-						color: 'silver'
+						color: 'black'
 					}
 				],
 				showLastLabel: true
@@ -116,11 +116,15 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
 				tooltip: {
 					valueSuffix:'$/month'
 				},
+				type: 'spline',
 				data: []
 			},
 			{
 				name: this.yLabels[1],
 				yAxis: 1,
+				tooltip: {
+					valueSuffix:''
+				},
 				type: 'column',
 				color: '#F7A35C90',
 				data: []
@@ -132,26 +136,33 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes.data && this.data && this.data.length) {
-			console.log(this.data);
 			this.data.forEach((datum, idx) => this.option.series[idx].data = datum);
 			this.option.title.text = this.title;
 			if (this.differential) {
 				for (let i = 0; i < 2; i++) {
 					this.option.yAxis[i].title.text = this.yLabels[i] + ' Differential'
 					this.option.series[i].name = this.yLabels[i] + ' Differential';
+					this.option.series[i].tooltip.valueSuffix = '%';
 				}
 				this.option.yAxis[0].labels.formatter = function() {
-					return (this.value > 0 ? '+' : '') + this.value + '$/month';
+					return (this.value > 0 ? '+' : '') + this.value + '%';
 				}
 				this.option.yAxis[1].labels.formatter = function() {
-					return (this.value > 0 ? '+' : '') + this.value;
+					return (this.value > 0 ? '+' : '') + this.value + '%';
 				}
+				this.option.series[1].type = null;
 			}
 			this.draw();
 		}
 	}
 
-    ngOnInit(): void {}
+    ngOnInit(): void {
+		Highcharts.setOptions({
+			lang: {
+				thousandsSep: ''
+			}
+		})
+	}
 
     ngAfterViewInit(): void {
         this.option.chart.renderTo = this.chartContainer.nativeElement;
@@ -162,13 +173,15 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
 				for (let i = 0; i < 2; i++) {
 					this.option.yAxis[i].title.text = this.yLabels[i] + ' Differential'
 					this.option.series[i].name = this.yLabels[i] + ' Differential';
+					this.option.series[i].tooltip.valueSuffix = '%';
 				}
 				this.option.yAxis[0].labels.formatter = function() {
-					return (this.value > 0 ? '+' : '') + this.value + '$/month';
+					return (this.value > 0 ? '+' : '') + this.value + '%';
 				}
 				this.option.yAxis[1].labels.formatter = function() {
-					return (this.value > 0 ? '+' : '') + this.value;
+					return (this.value > 0 ? '+' : '') + this.value + '%';
 				}
+				this.option.series[1].type = 'spline';
 			}
 			this.draw();
 		}
