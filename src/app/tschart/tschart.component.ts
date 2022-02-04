@@ -1,4 +1,3 @@
-import { ThrowStmt } from '@angular/compiler';
 import {
     AfterViewInit,
     Component,
@@ -25,7 +24,7 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
     chart: any;
     option: any = {
         chart: {
-			height: 500
+			height: 450
 		},
 		title: {
 			text: 'title'
@@ -150,7 +149,7 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
 				this.option.yAxis[1].labels.formatter = function() {
 					return (this.value > 0 ? '+' : '') + this.value + '%';
 				}
-				this.option.series[1].type = null;
+				this.option.series[1].type = 'spline';
 			}
 			this.draw();
 		}
