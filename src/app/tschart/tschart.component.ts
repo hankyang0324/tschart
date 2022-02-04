@@ -58,6 +58,9 @@ export class TschartComponent implements OnInit, AfterViewInit, OnChanges {
             {
 				labels: {
 					formatter: function() {
+						if (this.value > 1000) {
+							return this.value / 1000 + 'k'
+						}
 						return this.value;
 					},
                     style: {
